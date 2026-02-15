@@ -1,0 +1,5 @@
+ascon
+numpy
+pillow
+pycryptodome
+python-dotenv
