@@ -49,13 +49,27 @@ Plaintext
 pip install -r requirements.txt
 ```
 
-2. *(Optional)* Launch the demo UI:
+2. Create the Streamlit secrets file (required before running the app):
+
+```
+.streamlit/secrets.toml
+```
+
+```toml
+[users]
+user1 = "test111"
+user2 = "test222"
+```
+
+> This file is intentionally excluded from version control (`.gitignore`). The app reads user credentials from `st.secrets["users"]` at startup and will crash without this file present.
+
+3. Launch the demo UI:
 ```bash
 streamlit run app.py
 ```
 Then open `http://localhost:8501` in your browser.
 
-> No `.env` file or pre-shared secrets needed — all symmetric keys are generated randomly per run via `get_random_bytes`.
+> No additional `.env` file or pre-shared secrets needed — all symmetric keys are generated randomly per run via `get_random_bytes`.
 
 ---
 
@@ -92,6 +106,8 @@ The Streamlit UI demonstrates the full pipeline interactively between two partie
 ```
 app.py                  # Streamlit entry point
 app_config.py           # Constants, paths, user table, directory bootstrap
+.streamlit/
+  secrets.toml          # User credentials (create locally; never committed — see Setup)
 helpers/
   rsa_utils.py          # RSA keypair generation, KEM wrap/unwrap, key registry I/O
   inbox.py              # Inbox filesystem helpers (check/clear per-user inbox)
@@ -132,5 +148,6 @@ data/
 ---
 
 ### Notes
+- **`.streamlit/secrets.toml` must be created manually** before the first run (see Setup). Without it, `app_config.py` will fail when calling `st.secrets["users"]`.
 - Cover images must be large enough to embed the payload; the engine reports an error if capacity is exceeded.
-- All runtime data (`data/inbox/`, `data/staging/`, `data/public_keys.json`) is excluded from version control via `.gitignore`.
+- All runtime data (`data/inbox/`, `data/staging/`, `data/public_keys.json`) and `.streamlit/secrets.toml` are excluded from version control via `.gitignore`.
