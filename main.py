@@ -11,6 +11,7 @@ def main():
     choice = input("Select Option (1/2): ")
 
     if choice == '1':
+        print("\n[INFO] Hide mode")
         secret_msg = input("Enter Secret Message: ")
         try:
             num_parts = int(input("Enter number of images to use: "))
@@ -22,11 +23,13 @@ def main():
             return
         
         images = glob.glob(os.path.join(config.COVER_IMAGE_DIR, "*.*"))
+        print(f"[INFO] Cover images found: {len(images)}")
         
         if len(images) < num_parts:
             print(f"ERROR: Not enough images! Need {num_parts}, found {len(images)}.")
             return
 
+        print("[INFO] Preparing encrypted payloads...")
         payloads = split_and_prepare_payloads(
             secret_msg, 
             num_parts, 
@@ -35,6 +38,7 @@ def main():
             config.CTR_KEY
         )
 
+        print("[INFO] Embedding payloads into images...")
         for i, (payload_bundle) in enumerate(payloads):
             enc_seq_id, enc_content = payload_bundle
             full_data = enc_seq_id + enc_content
@@ -49,8 +53,10 @@ def main():
         print(f"\nDistribution Complete! Sent {num_parts} randomized parts.")
 
     elif choice == '2':
-        print("Scanning stego_images folder...")
+        print("\n[INFO] Reveal mode")
+        print("[INFO] Scanning stego images...")
         stego_files = glob.glob(os.path.join(config.STEGO_IMAGE_DIR, "stego_*.png"))
+        print(f"[INFO] Stego images found: {len(stego_files)}")
         
         if not stego_files:
             print("No stego images found!")
@@ -58,6 +64,7 @@ def main():
 
         recovered_payloads = []
 
+        print("[INFO] Extracting payloads...")
         for img_path in stego_files:
             raw_data = extract_data(img_path)
             
@@ -68,6 +75,7 @@ def main():
                 recovered_payloads.append((enc_seq_id, enc_content))
 
         try:
+            print("[INFO] Decrypting and reassembling...")
             message = reassemble_payloads(
                 recovered_payloads, 
                 config.INNER_KEY, 
@@ -82,6 +90,9 @@ def main():
                 
         except Exception as e:
             print(f"FAILED: {e}")
+
+    else:
+        print("Invalid option. Please select 1 or 2.")
 
 if __name__ == "__main__":
     main()
