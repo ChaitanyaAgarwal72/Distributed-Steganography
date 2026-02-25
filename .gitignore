@@ -34,6 +34,8 @@ dist/
 /data/inbox/
 /data/staging/
 /data/public_keys.json
+# BUT keep the empty seed file so Streamlit Cloud doesn't crash on cold start
+!/data/public_keys.json
 
 # Cache
 .ipynb_checkpoints/
