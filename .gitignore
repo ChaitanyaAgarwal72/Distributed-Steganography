@@ -10,6 +10,9 @@ venv/
 .venv/
 ENV/
 
+# Environment / secrets file
+.env
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -27,9 +30,10 @@ dist/
 # Logs
 *.log
 
-# Local data outputs
-/data/stego_img/
-/data/decrypted_output/
+# Runtime-generated data (Streamlit app)
+/data/inbox/
+/data/staging/
+/data/public_keys.json
 
 # Cache
 .ipynb_checkpoints/
