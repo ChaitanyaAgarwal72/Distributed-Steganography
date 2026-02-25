@@ -21,6 +21,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Streamlit secrets (local only, never commit)
+.streamlit/secrets.toml
+
 # Python packaging/build
 build/
 dist/
