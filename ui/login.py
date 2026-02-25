@@ -49,7 +49,7 @@ def screen_login() -> None:
         st.markdown(
             """<div style="text-align:center;color:#334155;font-size:.7rem;
                           margin-top:1.2rem;font-family:'Space Mono',monospace;">
-               alice / alice123 &nbsp;·&nbsp; bob / bob123
+               user1 / test111 &nbsp;·&nbsp; user2 / test222
                </div></div>""",
             unsafe_allow_html=True,
         )

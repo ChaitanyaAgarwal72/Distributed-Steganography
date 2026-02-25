@@ -1,18 +1,20 @@
-## Secure E2EE Steganography Chat
+## Distributed Steganography with Multi-Layer Cryptography
 
-A Network and Information Security project implementing end-to-end encrypted steganographic messaging between two users via a Streamlit web UI.
+A Network and Information Security project that demonstrates secure covert data transmission by distributing encrypted message chunks across multiple images using layered cryptography and LSB steganography.
 
-Messages are split into chunks, encrypted through a tri-hybrid cipher pipeline, encapsulated with RSA-2048, and embedded into PNG images using LSB steganography — making the communication both confidential and visually covert.
+The core system splits a secret payload into N chunks, encrypts each through a tri-hybrid cipher pipeline, encapsulates the symmetric keys with RSA-2048, shuffles the chunks, and embeds them into separate PNG cover images. Extraction reverses the process: decapsulate keys, pull payloads from images, sort by decrypted sequence IDs, and reassemble the original message.
+
+A **Streamlit web UI is included as a demo front-end** to interact with the system visually. The underlying engine (`src/`) is fully independent of it.
 
 ---
 
 ### Features
-- **Streamlit web UI** — browser-based chat interface, no CLI required.
 - **Tri-hybrid encryption**: ChaCha20 (confidentiality) → ASCON-128 (integrity/authentication) → AES-128-CTR (sequence-ID obfuscation).
-- **RSA-2048 KEM** — per-message random symmetric keys wrapped with the recipient's RSA public key.
-- **LSB steganography** — encrypted payload embedded into PNG cover images; stego images are indistinguishable from originals.
-- **Chunked messaging** — message split across N images, shuffled, reassembled in order on the receiver side.
-- **Per-session key generation** — no hardcoded secrets; keys are generated fresh at login.
+- **RSA-2048 KEM** — per-run random symmetric keys wrapped with the recipient's RSA public key; no pre-shared secrets.
+- **LSB steganography** — encrypted payload embedded into PNG cover images; stego images are visually identical to originals.
+- **Distributed chunking** — message split across N images and shuffled; order recovered at extraction via encrypted sequence IDs.
+- **Integrity protection** — ASCON-128 authentication tag ensures tampered chunks are detected and rejected.
+- **Demo UI** — Streamlit front-end for visualising the full pipeline end-to-end between two parties.
 
 ---
 
@@ -47,28 +49,41 @@ Plaintext
 pip install -r requirements.txt
 ```
 
-2. Launch the app:
+2. *(Optional)* Launch the demo UI:
 ```bash
 streamlit run app.py
 ```
+Then open `http://localhost:8501` in your browser.
 
-3. Open the browser at `http://localhost:8501`.
-
-> No `.env` file or pre-shared keys needed — all symmetric keys are generated randomly per message.
+> No `.env` file or pre-shared secrets needed — all symmetric keys are generated randomly per run via `get_random_bytes`.
 
 ---
 
-### Usage
+### How It Works
 
-1. **Login** — select a user (`alice` or `bob`) and enter the password.
-2. **Generate RSA Keys** — click *Generate & Register Keys* in the Key Status panel to create your RSA-2048 keypair and publish your public key.
-3. **Send a Message**:
-   - Upload one or more PNG cover images.
-   - Type your secret message and click *Encrypt & Embed*.
-   - Preview the stego images, then click *Deliver to Inbox*.
-4. **Receive a Message**:
-   - Switch to the other user's session.
-   - Click *Check Inbox* → *Decrypt & Reveal* to extract and display the original message.
+#### Embed (Sender side)
+1. Secret message is split into N equal chunks.
+2. Each chunk is encrypted through the tri-hybrid pipeline (ChaCha20 → ASCON-128 → AES-128-CTR).
+3. An encrypted sequence ID is prepended to each chunk payload so order can be recovered after shuffling.
+4. All symmetric keys (32 + 16 + 16 = 64 bytes) are RSA-OAEP encrypted with the recipient's public key and stored alongside the stego images.
+5. Payloads are shuffled and each is embedded into a separate PNG cover image via LSB encoding with a length header.
+
+#### Extract (Receiver side)
+1. Receiver decapsulates the 64-byte key blob using their RSA private key, recovering all three symmetric keys.
+2. Raw bytes are extracted from each stego image (length-header guided).
+3. The AES-CTR encrypted sequence ID (`first 12 bytes`) is decrypted to recover the original order.
+4. Chunks are sorted by sequence ID, ASCON tag is verified, ChaCha20 is decrypted, and chunks are reassembled.
+
+---
+
+### Demo UI Usage
+
+The Streamlit UI demonstrates the full pipeline interactively between two parties (User 1 and User 2):
+
+1. **Login** — select a user (`user1` or `user2`) and enter the password.
+2. **Generate RSA Keys** — create an RSA-2048 keypair and register the public key.
+3. **Embed** — upload PNG cover images, type a secret message, encrypt & embed, then deliver to the recipient's inbox.
+4. **Extract** — on the receiver side, check the inbox and decrypt to reveal the original message.
 
 ---
 
@@ -100,19 +115,19 @@ src/
     chunk_manager.py    # Message splitting, shuffling, and reassembly
     img_loager.py       # Image loading helper
 data/
-  inbox/                # Per-user message queues (alice/, bob/)
+  inbox/                # Per-user message queues (user1/, user2/)
   staging/              # Temporary workspace for encrypt/decrypt operations
   public_keys.json      # RSA public key registry (runtime-generated)
 ```
 
 ---
 
-### Users (Demo)
+### Demo Users
 
 | Username | Password  |
 |----------|-----------|
-| alice    | alice123  |
-| bob      | bob123    |
+| user1    | test111   |
+| user2    | test222   |
 
 ---
 
