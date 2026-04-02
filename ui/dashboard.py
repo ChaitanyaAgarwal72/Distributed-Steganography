@@ -1,6 +1,7 @@
 import streamlit as st
 
 from app_config import PARTNER
+from helpers.session import end_user_session
 from ui.panels.key_status import panel_key_status
 from ui.panels.send       import panel_send
 from ui.panels.receive    import panel_receive
@@ -31,8 +32,7 @@ def screen_dashboard() -> None:
     with hdr_r:
         st.write("")
         if st.button("⏻ Logout", width="stretch"):
-            for k in list(st.session_state.keys()):
-                del st.session_state[k]
+            end_user_session()
             st.rerun()
 
     key_col, send_col, recv_col = st.columns([1.15, 2.5, 2.5], gap="medium")

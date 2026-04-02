@@ -1,6 +1,7 @@
 import streamlit as st
 
 from app_config import USERS
+from helpers.session import start_user_session
 
 
 def screen_login() -> None:
@@ -37,8 +38,7 @@ def screen_login() -> None:
 
         if submitted:
             if USERS.get(username) == password:
-                st.session_state.logged_in = True
-                st.session_state.username  = username
+                start_user_session(username)
                 st.rerun()
             else:
                 st.markdown(

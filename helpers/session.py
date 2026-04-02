@@ -1,4 +1,5 @@
 import streamlit as st
+from secrets import token_hex
 
 
 def init_state() -> None:
@@ -9,6 +10,7 @@ def init_state() -> None:
     defaults: dict = {
         "logged_in":      False,
         "username":       None,
+        "session_token":  None,
 
         "private_key":    None,
         "keys_generated": False,
@@ -23,3 +25,15 @@ def init_state() -> None:
     for key, default in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = default
+
+
+def start_user_session(username: str) -> None:
+    """Mark the current browser session as authenticated for one user."""
+    st.session_state.logged_in = True
+    st.session_state.username = username
+    st.session_state.session_token = token_hex(16)
+
+
+def end_user_session() -> None:
+    """Invalidate all sensitive state for the active browser session."""
+    st.session_state.clear()

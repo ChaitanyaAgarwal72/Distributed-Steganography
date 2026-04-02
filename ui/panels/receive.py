@@ -8,6 +8,16 @@ from helpers.rsa_utils import rsa_decrypt_sym_keys
 from src.utils.chunk_manager import reassemble_payloads
 from src.stego.lsb_engine    import extract_data
 
+
+def _session_is_active(user: str) -> bool:
+    return (
+        st.session_state.get("logged_in", False)
+        and st.session_state.get("username") == user
+        and st.session_state.get("session_token") is not None
+        and st.session_state.get("private_key") is not None
+        and st.session_state.get("keys_generated", False)
+    )
+
 def panel_receive(user: str, partner: str) -> None:
     stage = st.session_state.recv_stage
 
@@ -93,6 +103,9 @@ def _do_reveal(user: str, inbox: Path, stego_files: list) -> None:
       4. reassemble_payloads → AES-CTR ID sort → ASCON verify → ChaCha20 decrypt
     """
     try:
+        if not _session_is_active(user):
+            raise RuntimeError("session has ended; sign in again to decrypt messages")
+
         with st.spinner("🔓 RSA decapsulation & tri-hybrid decryption…"):
             enc_blob = (inbox / "keys.bin").read_bytes()
             inner_key, outer_key, ctr_key = rsa_decrypt_sym_keys(

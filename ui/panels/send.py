@@ -81,7 +81,7 @@ def _compose_form(user: str, partner: str) -> None:
     can_send = bool(message and message.strip() and uploaded)
 
     if st.button(
-        "🔐 ENCRYPT & TRANSMIT",
+        "🔐 ENCRYPT",
         width="stretch",
         disabled=not can_send,
         key="btn_encrypt",
